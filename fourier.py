@@ -37,7 +37,7 @@ def rangeFFT(signal,device):
                                      [0.+0.j,         0.+0.j,         rFFT[8,n], rFFT[11,n]],
                                      [0.+0.j,         0.+0.j,         rFFT[9,n], rFFT[10,n]]]
     elif device == 'IWR1843ISK':
-        radarCube = np.zeros((2,8,nBins),dtype=complex )
+        radarCube = np.zeros((2,8,nBins),dtype=complex)
         for n in range(nBins):
             radarCube[:,:,n] = [[0,         0,         rFFT[4,n], rFFT[5,n], rFFT[6,n], rFFT[7,n], 0,         0          ],
                          [rFFT[0,n], rFFT[1,n], rFFT[2,n], rFFT[3,n], rFFT[8,n], rFFT[9,n], rFFT[10,n], rFFT[11,n]]]
@@ -80,12 +80,16 @@ def angleFFT(signal):
 def dopplerFFT(signal):
 
     # Virtual antenna to do the calculations:
-    signal = signal[:,1,:]
     # 2D-range/Doppler FFT
-    dFFT = np.fft.fft2(signal,axes=(0,1))
+    dFFT = np.zeros(np.shape(signal),dtype=complex)
+    for n in range(np.shape(signal)[1]):
+        dFFT[:,n,:] = np.fft.fft2(signal[:,n,:],axes=(0,1))
+
+    dFFT = np.mean(abs(dFFT),axis=1)
+
     dFFT = np.fft.fftshift(dFFT,axes=0)
     # Removing near-field effect
-    dFFT[:,0:12] = 0
+    dFFT[:,0:8] = 0
 
     # Bins for range and velocity
     rBins = np.linspace(0,PARAMS.R_MAX,PARAMS.NUM_RANGE_BINS)
